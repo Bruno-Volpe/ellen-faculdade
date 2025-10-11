@@ -38,11 +38,6 @@ const items = [
     icon: Users,
   },
   {
-    title: "Clientes",
-    key: "clients",
-    icon: MessageSquare,
-  },
-  {
     title: "Calendário",
     key: "calendar",
     icon: Calendar,

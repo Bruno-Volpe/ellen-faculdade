@@ -26,20 +26,6 @@ export default function App() {
         return <Calendar />
       case "integrations":
         return <Integrations />
-      case "clients":
-        return (
-          <div className="space-y-6">
-            <header>
-              <h2>Clientes</h2>
-              <p className="text-muted-foreground">
-                Gerencie seus clientes e relacionamentos
-              </p>
-            </header>
-            <div className="flex items-center justify-center h-96 border-2 border-dashed border-border rounded-lg">
-              <p className="text-muted-foreground">Seção de Clientes em desenvolvimento</p>
-            </div>
-          </div>
-        )
       case "settings":
         return (
           <div className="space-y-6">
