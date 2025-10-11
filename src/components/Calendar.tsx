@@ -4,26 +4,26 @@ import { Button } from "./ui/button"
 import { Avatar, AvatarFallback } from "./ui/avatar"
 import { Calendar as CalendarIcon, Clock, Plus, Filter } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
+import { Input } from "./ui/input"
+import { Label } from "./ui/label"
+import { Textarea } from "./ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
+import { useState } from "react"
 
 export function Calendar() {
-  const today = new Date()
-  const currentMonth = today.getMonth()
-  const currentYear = today.getFullYear()
-  
-  // Generate calendar days for current month
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1)
-  const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0)
-  const firstDayWeekday = firstDayOfMonth.getDay()
-  const daysInMonth = lastDayOfMonth.getDate()
-  
-  const monthNames = [
-    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-  ]
-  
-  const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
-
-  const scheduledPosts = [
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [newPost, setNewPost] = useState({
+    title: "",
+    date: "",
+    time: "",
+    platform: "",
+    type: "",
+    client: "",
+    preview: "",
+    assignee: ""
+  })
+  const [posts, setPosts] = useState([
     {
       id: 1,
       date: "2025-08-19",
@@ -84,7 +84,48 @@ export function Calendar() {
       assignee: "JS",
       preview: "5 dicas para uma alimentação mais saudável..."
     }
+  ])
+
+  const handleAddPost = () => {
+    if (newPost.title && newPost.date && newPost.time && newPost.platform && newPost.client) {
+      const post = {
+        id: posts.length + 1,
+        ...newPost,
+        status: "Rascunho"
+      }
+      setPosts([...posts, post])
+      setNewPost({
+        title: "",
+        date: "",
+        time: "",
+        platform: "",
+        type: "",
+        client: "",
+        preview: "",
+        assignee: ""
+      })
+      setIsDialogOpen(false)
+    }
+  }
+
+  const today = new Date()
+  const currentMonth = today.getMonth()
+  const currentYear = today.getFullYear()
+  
+  // Generate calendar days for current month
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1)
+  const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0)
+  const firstDayWeekday = firstDayOfMonth.getDay()
+  const daysInMonth = lastDayOfMonth.getDate()
+  
+  const monthNames = [
+    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
   ]
+  
+  const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
+
+  const scheduledPosts = posts
 
   const upcomingPosts = scheduledPosts
     .filter(post => new Date(post.date + "T" + post.time) >= new Date())
@@ -152,10 +193,135 @@ export function Calendar() {
             <Filter className="h-4 w-4 mr-2" />
             Filtros
           </Button>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Postagem
-          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Postagem
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Criar Nova Postagem</DialogTitle>
+                <DialogDescription>
+                  Preencha os detalhes da nova postagem para a agenda.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="title" className="text-right">
+                    Título
+                  </Label>
+                  <Input
+                    id="title"
+                    value={newPost.title}
+                    onChange={(e) => setNewPost({...newPost, title: e.target.value})}
+                    className="col-span-3"
+                    placeholder="Título da postagem"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="date" className="text-right">
+                    Data
+                  </Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={newPost.date}
+                    onChange={(e) => setNewPost({...newPost, date: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="time" className="text-right">
+                    Hora
+                  </Label>
+                  <Input
+                    id="time"
+                    type="time"
+                    value={newPost.time}
+                    onChange={(e) => setNewPost({...newPost, time: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="platform" className="text-right">
+                    Plataforma
+                  </Label>
+                  <Select value={newPost.platform} onValueChange={(value: string) => setNewPost({...newPost, platform: value})}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Selecione a plataforma" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Instagram">Instagram</SelectItem>
+                      <SelectItem value="Facebook">Facebook</SelectItem>
+                      <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                      <SelectItem value="TikTok">TikTok</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="type" className="text-right">
+                    Tipo
+                  </Label>
+                  <Select value={newPost.type} onValueChange={(value: string) => setNewPost({...newPost, type: value})}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Post">Post</SelectItem>
+                      <SelectItem value="Story">Story</SelectItem>
+                      <SelectItem value="Reel">Reel</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="client" className="text-right">
+                    Cliente
+                  </Label>
+                  <Input
+                    id="client"
+                    value={newPost.client}
+                    onChange={(e) => setNewPost({...newPost, client: e.target.value})}
+                    className="col-span-3"
+                    placeholder="Nome do cliente"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="assignee" className="text-right">
+                    Responsável
+                  </Label>
+                  <Input
+                    id="assignee"
+                    value={newPost.assignee}
+                    onChange={(e) => setNewPost({...newPost, assignee: e.target.value})}
+                    className="col-span-3"
+                    placeholder="Iniciais (ex: MS)"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="preview" className="text-right">
+                    Preview
+                  </Label>
+                  <Textarea
+                    id="preview"
+                    value={newPost.preview}
+                    onChange={(e) => setNewPost({...newPost, preview: e.target.value})}
+                    className="col-span-3"
+                    placeholder="Texto da postagem"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleAddPost}>
+                  Criar Postagem
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
