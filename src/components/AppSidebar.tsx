@@ -38,6 +38,11 @@ const items = [
     icon: Users,
   },
   {
+    title: "Clientes",
+    key: "clients",
+    icon: MessageSquare,
+  },
+  {
     title: "Calendário",
     key: "calendar",
     icon: Calendar,
@@ -70,15 +75,19 @@ export function AppSidebar({ activeSection, setActiveSection }: AppSidebarProps)
         <SidebarGroup>
           <SidebarGroupLabel>Marketing Hub</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu role="navigation" aria-label="Menu principal">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild
                     isActive={activeSection === item.key}
                   >
-                    <button onClick={() => setActiveSection(item.key)}>
-                      <item.icon />
+                    <button 
+                      onClick={() => setActiveSection(item.key)}
+                      aria-label={`Navegar para ${item.title}`}
+                      aria-current={activeSection === item.key ? 'page' : undefined}
+                    >
+                      <item.icon aria-hidden="true" />
                       <span>{item.title}</span>
                     </button>
                   </SidebarMenuButton>

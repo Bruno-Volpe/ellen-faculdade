@@ -144,107 +144,122 @@ export function Posts() {
     ))
   }
 
+  const filterPosts = (status: Post["status"]) => {
+    return posts.filter(post => post.status === status)
+  }
+
   const filteredPosts = posts.filter(post => {
     if (activeTab === "all") return true
     if (activeTab === "pending") return post.status === "Aguardando Aprovação"
     if (activeTab === "approved") return post.status === "Aprovado"
     if (activeTab === "draft") return post.status === "Rascunho"
+    if (activeTab === "published") return post.status === "Publicado"
     return true
   })
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1>Posts</h1>
-          <p className="text-muted-foreground">
-            Gerencie todos os posts e suas aprovações
-          </p>
-        </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Post
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Criar Novo Post</DialogTitle>
-              <DialogDescription>
-                Preencha os detalhes do novo post para aprovação
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="title">Título</Label>
-                <Input id="title" placeholder="Ex: Post Lançamento Verão" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="campaign">Campanha</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma campanha" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="verao">Campanha Verão 2025</SelectItem>
-                    <SelectItem value="produto">Lançamento Produto X</SelectItem>
-                    <SelectItem value="rebranding">Rebranding Completo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="platform">Plataforma</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a plataforma" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="instagram">Instagram</SelectItem>
-                    <SelectItem value="instagram-stories">Instagram Stories</SelectItem>
-                    <SelectItem value="facebook">Facebook</SelectItem>
-                    <SelectItem value="tiktok">TikTok</SelectItem>
-                    <SelectItem value="linkedin">LinkedIn</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="caption">Legenda</Label>
-                <Textarea 
-                  id="caption" 
-                  placeholder="Escreva a legenda do post..."
-                  rows={4}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="scheduledDate">Data e Hora Agendada</Label>
-                <Input id="scheduledDate" type="datetime-local" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="image">URL da Imagem</Label>
-                <Input id="image" placeholder="https://..." />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={() => setIsCreateDialogOpen(false)}>
-                Criar Post
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+      <header>
+        <h2 id="posts-heading">Posts e Conteúdo</h2>
+        <p className="text-muted-foreground">
+          Gerencie e agende postagens para suas redes sociais
+        </p>
+      </header>
 
-      {/* Tabs para filtros */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="all">Todos</TabsTrigger>
-          <TabsTrigger value="pending">Aguardando Aprovação</TabsTrigger>
-          <TabsTrigger value="approved">Aprovados</TabsTrigger>
-          <TabsTrigger value="draft">Rascunhos</TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="flex justify-between items-center gap-4">
+          <TabsList>
+            <TabsTrigger value="all" aria-label="Mostrar todos os posts">
+              Todos ({posts.length})
+            </TabsTrigger>
+            <TabsTrigger value="draft" aria-label="Mostrar apenas rascunhos">
+              Rascunhos ({filterPosts("Rascunho").length})
+            </TabsTrigger>
+            <TabsTrigger value="pending" aria-label="Mostrar posts aguardando aprovação">
+              Aguardando ({filterPosts("Aguardando Aprovação").length})
+            </TabsTrigger>
+            <TabsTrigger value="approved" aria-label="Mostrar posts aprovados">
+              Aprovados ({filterPosts("Aprovado").length})
+            </TabsTrigger>
+            <TabsTrigger value="published" aria-label="Mostrar posts publicados">
+              Publicados ({filterPosts("Publicado").length})
+            </TabsTrigger>
+          </TabsList>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button aria-label="Criar novo post">
+                <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
+                Novo Post
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Criar Novo Post</DialogTitle>
+                <DialogDescription>
+                  Preencha os detalhes do novo post para aprovação
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="title">Título</Label>
+                  <Input id="title" placeholder="Ex: Post Lançamento Verão" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="campaign">Campanha</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma campanha" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="verao">Campanha Verão 2025</SelectItem>
+                      <SelectItem value="produto">Lançamento Produto X</SelectItem>
+                      <SelectItem value="rebranding">Rebranding Completo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="platform">Plataforma</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a plataforma" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="instagram">Instagram</SelectItem>
+                      <SelectItem value="instagram-stories">Instagram Stories</SelectItem>
+                      <SelectItem value="facebook">Facebook</SelectItem>
+                      <SelectItem value="tiktok">TikTok</SelectItem>
+                      <SelectItem value="linkedin">LinkedIn</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="caption">Legenda</Label>
+                  <Textarea 
+                    id="caption" 
+                    placeholder="Escreva a legenda do post..."
+                    rows={4}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="scheduledDate">Data e Hora Agendada</Label>
+                  <Input id="scheduledDate" type="datetime-local" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="image">URL da Imagem</Label>
+                  <Input id="image" placeholder="https://..." />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={() => setIsCreateDialogOpen(false)}>
+                  Criar Post
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
 
         <TabsContent value={activeTab} className="space-y-4 mt-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -280,8 +295,12 @@ export function Posts() {
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          aria-label={`Opções para o post ${post.title}`}
+                        >
+                          <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -289,24 +308,24 @@ export function Posts() {
                           setSelectedPost(post)
                           setIsViewDialogOpen(true)
                         }}>
-                          <Eye className="h-4 w-4 mr-2" />
+                          <Eye className="h-4 w-4 mr-2" aria-hidden="true" />
                           Ver Detalhes
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => {
                           setSelectedPost(post)
                           setIsEditDialogOpen(true)
                         }}>
-                          <Edit className="h-4 w-4 mr-2" />
+                          <Edit className="h-4 w-4 mr-2" aria-hidden="true" />
                           Editar
                         </DropdownMenuItem>
                         {post.status === "Aguardando Aprovação" && (
                           <>
                             <DropdownMenuItem onClick={() => handleApprove(post.id)}>
-                              <CheckCircle className="h-4 w-4 mr-2" />
+                              <CheckCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                               Aprovar
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleReject(post.id, "Rejeitado pelo cliente")}>
-                              <XCircle className="h-4 w-4 mr-2" />
+                              <XCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                               Rejeitar
                             </DropdownMenuItem>
                           </>
@@ -315,7 +334,7 @@ export function Posts() {
                           className="text-destructive"
                           onClick={() => handleDelete(post.id)}
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
+                          <Trash2 className="h-4 w-4 mr-2" aria-hidden="true" />
                           Excluir
                         </DropdownMenuItem>
                       </DropdownMenuContent>

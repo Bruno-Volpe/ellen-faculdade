@@ -60,24 +60,28 @@ export function ClientSelector() {
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          aria-label={`Cliente selecionado: ${selectedClient.name}. Clique para alterar.`}
           className="w-full justify-between"
         >
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src={selectedClient.image} alt={selectedClient.name} />
+              <AvatarImage 
+                src={selectedClient.image} 
+                alt={`Logo do cliente ${selectedClient.name}`} 
+              />
               <AvatarFallback>{selectedClient.initials}</AvatarFallback>
             </Avatar>
             <span>{selectedClient.name}</span>
           </div>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
-          <CommandInput placeholder="Buscar cliente..." />
+          <CommandInput placeholder="Buscar cliente..." aria-label="Buscar cliente" />
           <CommandList>
             <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
-            <CommandGroup>
+            <CommandGroup heading="Clientes" aria-label="Lista de clientes">
               {clients.map((client) => (
                 <CommandItem
                   key={client.id}
@@ -89,7 +93,10 @@ export function ClientSelector() {
                 >
                   <div className="flex items-center gap-2 flex-1">
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={client.image} alt={client.name} />
+                      <AvatarImage 
+                        src={client.image} 
+                        alt={`Logo do cliente ${client.name}`} 
+                      />
                       <AvatarFallback>{client.initials}</AvatarFallback>
                     </Avatar>
                     <span>{client.name}</span>
@@ -98,6 +105,7 @@ export function ClientSelector() {
                     className={`ml-auto h-4 w-4 ${
                       selectedClient.id === client.id ? "opacity-100" : "opacity-0"
                     }`}
+                    aria-hidden="true"
                   />
                 </CommandItem>
               ))}

@@ -187,3 +187,115 @@
 html {
   font-size: var(--font-size);
 }
+
+/* Estilos de Alto Contraste */
+.high-contrast {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #000000;
+  --card-foreground: #ffffff;
+  --popover: #000000;
+  --popover-foreground: #ffffff;
+  --primary: #ffff00;
+  --primary-foreground: #000000;
+  --secondary: #00ffff;
+  --secondary-foreground: #000000;
+  --muted: #333333;
+  --muted-foreground: #ffffff;
+  --accent: #ffff00;
+  --accent-foreground: #000000;
+  --destructive: #ff0000;
+  --destructive-foreground: #ffffff;
+  --border: #ffffff;
+  --input: #ffffff;
+  --input-background: #1a1a1a;
+  --ring: #ffff00;
+}
+
+.high-contrast * {
+  font-weight: var(--font-weight-medium) !important;
+  text-shadow: none !important;
+}
+
+.high-contrast button,
+.high-contrast a,
+.high-contrast [role="button"] {
+  border: 2px solid currentColor !important;
+}
+
+/* Filtros para Daltonismo */
+[data-colorblind-mode="protanopia"] {
+  filter: url('#protanopia-filter');
+}
+
+[data-colorblind-mode="deuteranopia"] {
+  filter: url('#deuteranopia-filter');
+}
+
+[data-colorblind-mode="tritanopia"] {
+  filter: url('#tritanopia-filter');
+}
+
+[data-colorblind-mode="achromatopsia"] {
+  filter: grayscale(100%);
+}
+
+/* Melhorias de foco para acessibilidade */
+*:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+  transition: outline-offset 0.1s ease;
+}
+
+/* Foco mais visível em elementos interativos */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+/* Foco em modo alto contraste */
+.high-contrast *:focus-visible {
+  outline: 4px solid #ffff00 !important;
+  outline-offset: 4px !important;
+  box-shadow: 0 0 8px #ffff00 !important;
+}
+
+/* Screen reader only - esconde visualmente mas mantém acessível */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Mostra quando recebe foco - para skip links */
+.sr-only:focus,
+.sr-only:active {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 1rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Animações respeitam preferências do usuário */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
