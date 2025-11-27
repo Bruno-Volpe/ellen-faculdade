@@ -1,11 +1,24 @@
+import { useState } from "react"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
 import { Switch } from "./ui/switch"
 import { Alert, AlertDescription } from "./ui/alert"
+import { Input } from "./ui/input"
+import { Label } from "./ui/label"
+import { Textarea } from "./ui/textarea"
 import { CheckCircle2, AlertCircle, Settings, Zap, ExternalLink } from "lucide-react"
 
 export function Integrations() {
+  const [twitterAccessToken, setTwitterAccessToken] = useState("")
+  const [twitterAccessSecret, setTwitterAccessSecret] = useState("")
+  const [twitterPostText, setTwitterPostText] = useState("")
+  const [twitterPostLoading, setTwitterPostLoading] = useState(false)
+  const [twitterPostFeedback, setTwitterPostFeedback] = useState<
+    { type: "success" | "error"; message: string } | null
+  >(null)
+
   const integrations = [
     {
       id: "meta",
@@ -69,6 +82,58 @@ export function Integrations() {
       accountsConnected: 0
     }
   ]
+
+  const mediaManagerBaseUrl = (
+    import.meta as ImportMeta & { env?: Record<string, string | undefined> }
+  ).env?.VITE_MEDIA_MANAGER_URL || "https://mediahub-media-manager-1.onrender.com"
+
+  const sanitizeBaseUrl = (url: string) => url.replace(/\/$/, "")
+
+  const handleConnectTwitter = () => {
+    const connectUrl = `${sanitizeBaseUrl(mediaManagerBaseUrl)}/auth/x/connect`
+    window.open(connectUrl, "_blank", "noopener,noreferrer")
+  }
+
+  const handlePostToTwitter = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    setTwitterPostFeedback(null)
+    setTwitterPostLoading(true)
+
+    try {
+      if (!twitterAccessToken || !twitterAccessSecret || !twitterPostText.trim()) {
+        throw new Error("Preencha token, secret e o texto da publicação antes de enviar.")
+      }
+
+      const response = await fetch(`${sanitizeBaseUrl(mediaManagerBaseUrl)}/posts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          access_token: twitterAccessToken,
+          access_secret: twitterAccessSecret,
+          text: twitterPostText.trim()
+        })
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || "Erro ao enviar o post para o X (Twitter).")
+      }
+
+      setTwitterPostFeedback({ type: "success", message: "Post enviado para processamento com sucesso." })
+      setTwitterPostText("")
+    } catch (error) {
+      console.error("Erro ao enviar post para o X (Twitter)", error)
+      setTwitterPostFeedback({
+        type: "error",
+        message: error instanceof Error ? error.message : "Erro inesperado ao enviar o post."
+      })
+    } finally {
+      setTwitterPostLoading(false)
+    }
+  }
 
   const tools = [
     {
@@ -233,11 +298,86 @@ export function Integrations() {
                         Reconectar
                       </Button>
                     ) : (
-                      <Button size="sm" className="flex-1">
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={integration.id === "twitter" ? handleConnectTwitter : undefined}
+                      >
                         Conectar
                       </Button>
                     )}
                   </div>
+
+                  {integration.id === "twitter" && (
+                    <div className="space-y-4 rounded-lg border border-dashed border-primary/30 bg-primary/5 p-4">
+                      <div>
+                        <p className="text-sm font-medium">Tokens de acesso</p>
+                        <p className="text-xs text-muted-foreground">
+                          Cole aqui o <strong>access_token</strong> e o <strong>access_secret</strong> fornecidos pelo Media Manager após o redirecionamento.
+                        </p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <Label htmlFor="twitter-access-token" className="text-xs uppercase tracking-wide">
+                            Access Token
+                          </Label>
+                          <Input
+                            id="twitter-access-token"
+                            value={twitterAccessToken}
+                            onChange={(event) => setTwitterAccessToken(event.target.value)}
+                            placeholder="cole o access_token gerado"
+                            className="font-mono text-xs"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <Label htmlFor="twitter-access-secret" className="text-xs uppercase tracking-wide">
+                            Access Secret
+                          </Label>
+                          <Input
+                            id="twitter-access-secret"
+                            value={twitterAccessSecret}
+                            onChange={(event) => setTwitterAccessSecret(event.target.value)}
+                            placeholder="cole o access_secret gerado"
+                            className="font-mono text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      <form className="space-y-3" onSubmit={handlePostToTwitter}>
+                        <div className="space-y-1">
+                          <Label htmlFor="twitter-post-text" className="text-xs uppercase tracking-wide">
+                            Texto da publicação
+                          </Label>
+                          <Textarea
+                            id="twitter-post-text"
+                            value={twitterPostText}
+                            onChange={(event) => setTwitterPostText(event.target.value)}
+                            placeholder="Escreva o conteúdo do seu post"
+                            rows={4}
+                          />
+                        </div>
+
+                        <Button type="submit" disabled={twitterPostLoading} className="w-full">
+                          {twitterPostLoading ? "Enviando..." : "Enviar para /posts"}
+                        </Button>
+                      </form>
+
+                      {twitterPostFeedback && (
+                        <Alert variant={twitterPostFeedback.type === "success" ? "default" : "destructive"}>
+                          {twitterPostFeedback.type === "success" ? (
+                            <CheckCircle2 className="h-4 w-4" />
+                          ) : (
+                            <AlertCircle className="h-4 w-4" />
+                          )}
+                          <AlertDescription className="text-sm">
+                            {twitterPostFeedback.message}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -286,6 +426,7 @@ export function Integrations() {
           </div>
         </div>
       </div>
+
     </div>
   )
 }
