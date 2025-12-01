@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "./components/ui/sidebar"
 import { Separator } from "./components/ui/separator"
 import { AppSidebar } from "./components/AppSidebar"
@@ -11,9 +11,60 @@ import { Integrations } from "./components/Integrations"
 import { AccessibilityMenu } from "./components/AccessibilityMenu"
 import { ColorBlindFilters } from "./components/ColorBlindFilters"
 import { VLibrasWidget } from "./components/VLibrasWidget"
+import { LoginPage } from "./components/LoginPage"
+import { RegisterPage } from "./components/RegisterPage"
+import { getCurrentUser, logout } from "./services/auth"
+import type { User } from "./services/auth"
 
 export default function App() {
   const [activeSection, setActiveSection] = useState("dashboard")
+  const [user, setUser] = useState<User | null>(null)
+  const [authView, setAuthView] = useState<"login" | "register">("login")
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+
+  // Verifica se há usuário logado ao carregar
+  useEffect(() => {
+    const currentUser = getCurrentUser()
+    setUser(currentUser)
+    setIsCheckingAuth(false)
+  }, [])
+
+  const handleLogin = (loggedUser: User) => {
+    setUser(loggedUser)
+  }
+
+  const handleLogout = () => {
+    logout()
+    setUser(null)
+    setAuthView("login")
+  }
+
+  // Mostra loading enquanto verifica autenticação
+  if (isCheckingAuth) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="text-muted-foreground">Carregando...</div>
+      </div>
+    )
+  }
+
+  // Se não está logado, mostra tela de login ou registro
+  if (!user) {
+    if (authView === "login") {
+      return (
+        <LoginPage 
+          onLogin={handleLogin} 
+          onSwitchToRegister={() => setAuthView("register")} 
+        />
+      )
+    }
+    return (
+      <RegisterPage 
+        onRegister={handleLogin} 
+        onSwitchToLogin={() => setAuthView("login")} 
+      />
+    )
+  }
 
   const renderContent = () => {
     switch (activeSection) {
@@ -80,9 +131,21 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <SidebarTrigger className="-ml-1" aria-label="Alternar menu lateral" />
                 <Separator orientation="vertical" className="mr-2 h-4" aria-hidden="true" />
-                <h1 className="font-semibold">Marketing Hub</h1>
+                <h1 className="font-semibold">LionsBrain</h1>
               </div>
-              <AccessibilityMenu />
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-muted-foreground hidden sm:inline">
+                  Olá, {user.name}
+                </span>
+                <AccessibilityMenu />
+                <button
+                  onClick={handleLogout}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Sair do sistema"
+                >
+                  Sair
+                </button>
+              </div>
             </div>
           </header>
           <div className="flex flex-1 flex-col gap-4 p-4 pt-0">

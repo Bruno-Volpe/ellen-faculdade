@@ -1,9 +1,25 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
+import { Alert, AlertDescription } from "./ui/alert"
 import { Avatar, AvatarFallback } from "./ui/avatar"
-import { Plus, MoreHorizontal, Calendar, Image as ImageIcon, CheckCircle, XCircle, Clock, Edit, Trash2, Eye } from "lucide-react"
+import {
+  Plus,
+  MoreHorizontal,
+  Calendar,
+  Image as ImageIcon,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Edit,
+  Trash2,
+  Eye,
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight
+} from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "./ui/dialog"
 import { Input } from "./ui/input"
@@ -27,76 +43,147 @@ interface Post {
   clientFeedback?: string
 }
 
+const LOCAL_STORAGE_KEY = "marketing-hub-posts"
+const STATUS_FLOW: Post["status"][] = ["Rascunho", "Aguardando Aprovação", "Aprovado", "Publicado"]
+
+const DEFAULT_POSTS: Post[] = [
+  {
+    id: 1,
+    title: "Post Lançamento Coleção Verão",
+    caption:
+      "☀️ A nova coleção de verão chegou! Confira as novidades que vão deixar seu verão ainda mais estiloso. #Verão2025 #NovasColeção #BeachWear",
+    platform: "Instagram",
+    scheduledDate: "15/08/2025 14:00",
+    status: "Aguardando Aprovação",
+    image: "https://images.unsplash.com/photo-1523359346063-d879354c0ea5?w=800&h=800&fit=crop",
+    campaign: "Campanha Verão 2025",
+    author: "João Santos",
+    authorAvatar: "JS"
+  },
+  {
+    id: 2,
+    title: "Story Produto X - Features",
+    caption: "Descubra as funcionalidades incríveis do Produto X que vão revolucionar sua rotina! 🚀 #TechStart #Inovação",
+    platform: "Instagram Stories",
+    scheduledDate: "16/08/2025 10:00",
+    status: "Aprovado",
+    image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=800&fit=crop",
+    campaign: "Lançamento Produto X",
+    author: "Lucia Rocha",
+    authorAvatar: "LR"
+  },
+  {
+    id: 3,
+    title: "Post Menu Especial",
+    caption:
+      "🍽️ Nosso menu especial está de cara nova! Pratos exclusivos com ingredientes frescos e sabor incomparável. Venha experimentar! #RestaurantePlus #GastronomiaAutoral",
+    platform: "Facebook",
+    scheduledDate: "18/08/2025 19:00",
+    status: "Rascunho",
+    image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=800&fit=crop",
+    campaign: "Rebranding Completo",
+    author: "Maria Silva",
+    authorAvatar: "MS"
+  },
+  {
+    id: 4,
+    title: "Carrossel TikTok - Praia Essentials",
+    caption: "Os 5 itens essenciais para sua ida à praia! 🏖️ Arrasta pro lado e confere! #BeachEssentials #Verão",
+    platform: "TikTok",
+    scheduledDate: "17/08/2025 16:00",
+    status: "Rejeitado",
+    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=800&fit=crop",
+    campaign: "Campanha Verão 2025",
+    author: "João Santos",
+    authorAvatar: "JS",
+    clientFeedback: "O tom de voz não está alinhado com nossa marca. Por favor, revisar o copy."
+  },
+  {
+    id: 5,
+    title: "Post LinkedIn - Lançamento",
+    caption:
+      "Estamos orgulhosos de apresentar o Produto X, desenvolvido com tecnologia de ponta para otimizar seus resultados. Saiba mais no link da bio. #B2B #TechInnovation",
+    platform: "LinkedIn",
+    scheduledDate: "14/08/2025 09:00",
+    status: "Publicado",
+    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=800&fit=crop",
+    campaign: "Lançamento Produto X",
+    author: "Pedro Lima",
+    authorAvatar: "PL"
+  }
+]
+
 export function Posts() {
-  const [posts, setPosts] = useState<Post[]>([
-    {
-      id: 1,
-      title: "Post Lançamento Coleção Verão",
-      caption: "☀️ A nova coleção de verão chegou! Confira as novidades que vão deixar seu verão ainda mais estiloso. #Verão2025 #NovasColeção #BeachWear",
-      platform: "Instagram",
-      scheduledDate: "15/08/2025 14:00",
-      status: "Aguardando Aprovação",
-      image: "https://images.unsplash.com/photo-1523359346063-d879354c0ea5?w=800&h=800&fit=crop",
-      campaign: "Campanha Verão 2025",
-      author: "João Santos",
-      authorAvatar: "JS"
-    },
-    {
-      id: 2,
-      title: "Story Produto X - Features",
-      caption: "Descubra as funcionalidades incríveis do Produto X que vão revolucionar sua rotina! 🚀 #TechStart #Inovação",
-      platform: "Instagram Stories",
-      scheduledDate: "16/08/2025 10:00",
-      status: "Aprovado",
-      image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=800&fit=crop",
-      campaign: "Lançamento Produto X",
-      author: "Lucia Rocha",
-      authorAvatar: "LR"
-    },
-    {
-      id: 3,
-      title: "Post Menu Especial",
-      caption: "🍽️ Nosso menu especial está de cara nova! Pratos exclusivos com ingredientes frescos e sabor incomparável. Venha experimentar! #RestaurantePlus #GastronomiaAutoral",
-      platform: "Facebook",
-      scheduledDate: "18/08/2025 19:00",
-      status: "Rascunho",
-      image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=800&fit=crop",
-      campaign: "Rebranding Completo",
-      author: "Maria Silva",
-      authorAvatar: "MS"
-    },
-    {
-      id: 4,
-      title: "Carrossel TikTok - Praia Essentials",
-      caption: "Os 5 itens essenciais para sua ida à praia! 🏖️ Arrasta pro lado e confere! #BeachEssentials #Verão",
-      platform: "TikTok",
-      scheduledDate: "17/08/2025 16:00",
-      status: "Rejeitado",
-      image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=800&fit=crop",
-      campaign: "Campanha Verão 2025",
-      author: "João Santos",
-      authorAvatar: "JS",
-      clientFeedback: "O tom de voz não está alinhado com nossa marca. Por favor, revisar o copy."
-    },
-    {
-      id: 5,
-      title: "Post LinkedIn - Lançamento",
-      caption: "Estamos orgulhosos de apresentar o Produto X, desenvolvido com tecnologia de ponta para otimizar seus resultados. Saiba mais no link da bio. #B2B #TechInnovation",
-      platform: "LinkedIn",
-      scheduledDate: "14/08/2025 09:00",
-      status: "Publicado",
-      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=800&fit=crop",
-      campaign: "Lançamento Produto X",
-      author: "Pedro Lima",
-      authorAvatar: "PL"
-    },
-  ])
+  const [posts, setPosts] = useState<Post[]>(DEFAULT_POSTS)
+  const [hasHydrated, setHasHydrated] = useState(false)
+  const [activeTab, setActiveTab] = useState("all")
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
-  const [activeTab, setActiveTab] = useState("all")
+
+  const [createError, setCreateError] = useState<string | null>(null)
+  const [editError, setEditError] = useState<string | null>(null)
+
+  const [newPostData, setNewPostData] = useState({
+    title: "",
+    campaign: "",
+    platform: "",
+    caption: "",
+    scheduledDate: "",
+    image: "",
+    status: "Rascunho" as Post["status"]
+  })
+
+  const [editPostData, setEditPostData] = useState({
+    title: "",
+    campaign: "",
+    platform: "",
+    caption: "",
+    scheduledDate: "",
+    image: "",
+    status: "Rascunho" as Post["status"]
+  })
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(LOCAL_STORAGE_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed)) {
+          setPosts(parsed)
+        }
+      } else {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(DEFAULT_POSTS))
+      }
+    } catch (error) {
+      console.error("Não foi possível carregar posts do localStorage", error)
+    } finally {
+      setHasHydrated(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!hasHydrated) return
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(posts))
+  }, [posts, hasHydrated])
+
+  const statusCounts = useMemo(() => {
+    return posts.reduce(
+      (acc, post) => {
+        acc[post.status] = (acc[post.status] || 0) + 1
+        return acc
+      },
+      {
+        Rascunho: 0,
+        "Aguardando Aprovação": 0,
+        Aprovado: 0,
+        Rejeitado: 0,
+        Publicado: 0
+      } as Record<Post["status"], number>
+    )
+  }, [posts])
 
   const getStatusColor = (status: Post["status"]) => {
     switch (status) {
@@ -144,6 +231,60 @@ export function Posts() {
     ))
   }
 
+  // Fluxo: Rascunho -> Aguardando Aprovação -> Aprovado -> Publicado
+  // Rejeitado volta para Rascunho
+  const getNextStatus = (status: Post["status"]): Post["status"] | null => {
+    switch (status) {
+      case "Rascunho":
+        return "Aguardando Aprovação"
+      case "Aguardando Aprovação":
+        return "Aprovado"
+      case "Aprovado":
+        return "Publicado"
+      case "Rejeitado":
+        return "Rascunho" // Volta para rascunho para edição
+      case "Publicado":
+        return null // Fim do fluxo
+      default:
+        return null
+    }
+  }
+
+  const getPreviousStatus = (status: Post["status"]): Post["status"] | null => {
+    switch (status) {
+      case "Publicado":
+        return "Aprovado"
+      case "Aprovado":
+        return "Aguardando Aprovação"
+      case "Aguardando Aprovação":
+        return "Rascunho"
+      case "Rascunho":
+        return null // Início do fluxo
+      case "Rejeitado":
+        return "Aguardando Aprovação" // Volta para aguardando
+      default:
+        return null
+    }
+  }
+
+  const handleAdvanceStatus = (id: number) => {
+    setPosts(posts.map(post => {
+      if (post.id !== id) return post
+      const nextStatus = getNextStatus(post.status)
+      if (!nextStatus) return post
+      return { ...post, status: nextStatus, clientFeedback: undefined }
+    }))
+  }
+
+  const handleRevertStatus = (id: number) => {
+    setPosts(posts.map(post => {
+      if (post.id !== id) return post
+      const prevStatus = getPreviousStatus(post.status)
+      if (!prevStatus) return post
+      return { ...post, status: prevStatus }
+    }))
+  }
+
   const filterPosts = (status: Post["status"]) => {
     return posts.filter(post => post.status === status)
   }
@@ -154,6 +295,7 @@ export function Posts() {
     if (activeTab === "approved") return post.status === "Aprovado"
     if (activeTab === "draft") return post.status === "Rascunho"
     if (activeTab === "published") return post.status === "Publicado"
+    if (activeTab === "rejected") return post.status === "Rejeitado"
     return true
   })
 
@@ -183,6 +325,9 @@ export function Posts() {
             </TabsTrigger>
             <TabsTrigger value="published" aria-label="Mostrar posts publicados">
               Publicados ({filterPosts("Publicado").length})
+            </TabsTrigger>
+            <TabsTrigger value="rejected" aria-label="Mostrar posts rejeitados">
+              Rejeitados ({filterPosts("Rejeitado").length})
             </TabsTrigger>
           </TabsList>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -318,17 +463,29 @@ export function Posts() {
                           <Edit className="h-4 w-4 mr-2" aria-hidden="true" />
                           Editar
                         </DropdownMenuItem>
+                        {getNextStatus(post.status) && (
+                          <DropdownMenuItem onClick={() => handleAdvanceStatus(post.id)}>
+                            <ArrowRight className="h-4 w-4 mr-2" aria-hidden="true" />
+                            {post.status === "Rascunho" && "Enviar para Aprovação"}
+                            {post.status === "Aguardando Aprovação" && "Aprovar"}
+                            {post.status === "Aprovado" && "Publicar"}
+                            {post.status === "Rejeitado" && "Voltar para Rascunho"}
+                          </DropdownMenuItem>
+                        )}
+                        {getPreviousStatus(post.status) && (
+                          <DropdownMenuItem onClick={() => handleRevertStatus(post.id)}>
+                            <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
+                            {post.status === "Aguardando Aprovação" && "Voltar para Rascunho"}
+                            {post.status === "Aprovado" && "Voltar para Aguardando"}
+                            {post.status === "Publicado" && "Despublicar"}
+                            {post.status === "Rejeitado" && "Voltar para Aguardando"}
+                          </DropdownMenuItem>
+                        )}
                         {post.status === "Aguardando Aprovação" && (
-                          <>
-                            <DropdownMenuItem onClick={() => handleApprove(post.id)}>
-                              <CheckCircle className="h-4 w-4 mr-2" aria-hidden="true" />
-                              Aprovar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleReject(post.id, "Rejeitado pelo cliente")}>
-                              <XCircle className="h-4 w-4 mr-2" aria-hidden="true" />
-                              Rejeitar
-                            </DropdownMenuItem>
-                          </>
+                          <DropdownMenuItem onClick={() => handleReject(post.id, "Rejeitado pelo cliente")}>
+                            <XCircle className="h-4 w-4 mr-2" aria-hidden="true" />
+                            Rejeitar
+                          </DropdownMenuItem>
                         )}
                         <DropdownMenuItem 
                           className="text-destructive"
